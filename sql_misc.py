@@ -1,14 +1,30 @@
 import sqlalchemy
 import sqlalchemy as sq
-import re
-
-from sqlalchemy.ext import declarative
-Base =  declarative.declarative_base()
-
 import numpy as np
 
+import time
 import datetime
 import decimal
+
+#Just a few time helpers
+def now():
+    return datetime.datetime.fromtimestamp(time.time())
+
+def msecs(milliseconds=1):
+    return datetime.timedelta(milliseconds=milliseconds)
+
+def secs(seconds=1):
+    return datetime.timedelta(seconds=seconds)
+
+def mins(minutes=1):
+    return datetime.timedelta(minutes=minutes)
+
+def hours(hours=1):
+    datetime.timedelta(hours=hours)
+    
+def days(days=1):
+    datetime.timedelta(days=days)
+
 
 _type_py2sql_dict = {
     int: sqlalchemy.sql.sqltypes.BigInteger,
@@ -72,39 +88,3 @@ def type_df2py(df, undefined_to_str=True):
         df_types[key] = keytype
         
     return df_types
-
-def varnameify(s):
-    """Slugify a string to a valid python variable name."""
-    
-    #replace space/dash characters
-    s = s.replace(' ','_')
-    s = s.replace('-','_')
-    
-    #remove non- alphabetic/numerical/undercore characters
-    s = re.sub('[^0-9a-zA-Z_]', '', s)
-    
-    #may not start with number
-    if s[0] not in ('abcdefghijklmnopqrstuvwxyz'
-                    'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'):
-        s = '_'+s
-    
-    return s
-
-def make_table_class(tablename, column_dict, primary_key=None):
-    """A class factory to make sqlalchemy tables via declarative_base."""
-    
-    if primary_key is not None:
-        assert primary_key in column_dict, f"Key {primary_key} not found for primary key."
-    
-    class columns: pass
-    for key, val in column_dict.items():
-        setattr(columns, key, sq.Column(type_py2sql(val), primary_key=(key==primary_key)))
-        
-    class table(Base, columns):
-        __tablename__ = tablename
-        def __repr__(self):
-            return str({key:val for key, val in self.__dict__.items() if not key[0] == '_'})
-        
-    table.__name__ = varnameify(tablename+'Class')
-    
-    return table
