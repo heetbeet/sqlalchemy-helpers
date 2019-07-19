@@ -7,6 +7,7 @@ import uuid
 class botInfo:
     #Class methods and SQL data structures
     Base = declarative.declarative_base()
+    fallout_secs = 5.1
     
     class sqlBotInfo(Base):
         __tablename__ = 'botInfo'
@@ -46,7 +47,7 @@ class botInfo:
         
     def remove_dead(s):
         for bot in (s.session.query(s.sqlBotInfo)
-                             .filter(s.sqlBotInfo.last_seen < sqm.now()-sqm.secs(20))):
+                             .filter(s.sqlBotInfo.last_seen < sqm.now()-sqm.secs(s.fallout_secs))):
             s.session.delete(bot)
         s.session.commit()
         
@@ -60,7 +61,7 @@ class botInfo:
             next_api_time = sqm.now()
             
         bots = (s.session.query(s.sqlBotInfo)
-                         .filter(s.sqlBotInfo.last_seen > sqm.now()-sqm.secs(20))
+                         .filter(s.sqlBotInfo.last_seen > sqm.now()-sqm.secs(s.fallout_secs))
                          .order_by(s.sqlBotInfo.name))
         
         idx = [i for i in range(len(list(bots))) if s.name == bots[i].name][0]
@@ -77,7 +78,7 @@ class botInfo:
         s.check_in()
         
         bots = (s.session.query(s.sqlBotInfo)
-                         .filter(s.sqlBotInfo.last_seen > sqm.now()-sqm.secs(20))
+                         .filter(s.sqlBotInfo.last_seen > sqm.now()-sqm.secs(s.fallout_secs))
                          .order_by(s.sqlBotInfo.name))
         
         idx = [i for i in range(len(list(bots))) if s.name == bots[i].name][0]
